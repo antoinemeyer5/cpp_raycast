@@ -6,7 +6,8 @@ TODO
 
 ## Visuals
 
-TODO
+Version 1: Player (`Z`, `Q`, `S`, `D`), Map 2D, Raycasting 3D
+![screenshot-1](/visuals/1.png)
 
 ## Features
 

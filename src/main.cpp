@@ -67,6 +67,8 @@ void drawMap2D()
         for (int x = 0; x < mapX; x++) {
             if (map[y * mapX + x] == 1) {
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+            } else if (map[y * mapX + x] == 2) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
             } else {
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
             }
@@ -189,7 +191,7 @@ void drawRays3D()
             rx = vx;
             ry = vy;
             disT = disV;
-            SDL_SetRenderDrawColor(renderer, 200, 0, 0, SDL_ALPHA_OPAQUE); // < Little Red
+            SDL_SetRenderDrawColor(renderer, 200, 200, 200, SDL_ALPHA_OPAQUE);
             if (mv == 2) {
                 SDL_SetRenderDrawColor(renderer, 0, 0, 200, SDL_ALPHA_OPAQUE); // < Little Blue
             }
@@ -198,7 +200,7 @@ void drawRays3D()
             rx = hx;
             ry = hy;
             disT = disH;
-            SDL_SetRenderDrawColor(renderer, 100, 0, 0, SDL_ALPHA_OPAQUE); // < Little Red
+            SDL_SetRenderDrawColor(renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
             if (mh == 2) {
                 SDL_SetRenderDrawColor(renderer, 0, 0, 100, SDL_ALPHA_OPAQUE); // < Little Blue
             }
