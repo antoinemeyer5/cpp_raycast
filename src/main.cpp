@@ -16,18 +16,33 @@ static SDL_Renderer *renderer = NULL;
 #define mapY 10
 #define mapS 8
 
-int map[] = {
+int map[] = { // < Walls
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 2, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 2, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 1, 1, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 2, 0, 0, 1,
+    1, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+    1, 2, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
+
+/*
+int mapF[] = { // < Floors
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 2, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 2, 0, 0, 1,
+    1, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+    1, 2, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+};
+*/
 
 void drawMap2D()
 {
@@ -201,17 +216,35 @@ void drawRays3D()
         }
         SDL_RenderLine(renderer, px, py, rx, ry);
 
-        // Draw 3D walls
+        // Draw 3D: Walls
         float ca = fixAng(pa - ra);
         disT = disT * cos(degToRad(ca));
         // ^ Fix fisheye
-        float lineH = (mapS * 420) / disT;
-        if (lineH > 420) { lineH = 420; } // < Line height
-        float lineO = 300 - lineH / 2; // < Line offset
+
+        float maxLineH = 420;
         int width = 500;
+        float startOffset = 250;
+
+        float lineH = (mapS * maxLineH) / disT;
+        if (lineH > maxLineH) { lineH = maxLineH; } // < Line height
+        float lineO = startOffset - lineH / 2; // < Line offset
         SDL_RenderLine(renderer,
             mapX * mapS + 10 + r * (width / rays), lineO,
             mapX * mapS + 10 + r * (width / rays), lineO + lineH
+        );
+
+        // Draw 3D: Floors
+        GREEN(renderer);
+        SDL_RenderLine(renderer,
+            mapX * mapS + 10 + r * (width / rays), lineO + lineH,
+            mapX * mapS + 10 + r * (width / rays), startOffset + maxLineH / 2
+        );
+
+        // Draw 3D: Ceilings
+        RED(renderer);
+        SDL_RenderLine(renderer,
+            mapX * mapS + 10 + r * (width / rays), lineO,
+            mapX * mapS + 10 + r * (width / rays), startOffset - maxLineH / 2
         );
 
         // Increase angle for next ray
@@ -235,7 +268,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     pa = 0;
     pdx = cos(degToRad(pa));
     pdy = -sin(degToRad(pa));
-    pspeed = 0.1;
+    pspeed = 0.025;
     pspeedrot = 0.3;
 
     return SDL_APP_CONTINUE;

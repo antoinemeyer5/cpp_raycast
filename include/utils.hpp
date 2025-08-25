@@ -25,9 +25,19 @@ static const bool GRAY(SDL_Renderer *renderer)
     return SDL_SetRenderDrawColor(renderer, 155, 155, 155, SDL_ALPHA_OPAQUE);
 }
 
+static const bool GREEN(SDL_Renderer *renderer)
+{
+    return SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+}
+
 static const bool LIGHT_BLUE(SDL_Renderer *renderer)
 {
     return SDL_SetRenderDrawColor(renderer, 0, 0, 155, SDL_ALPHA_OPAQUE);
+}
+
+static const bool RED(SDL_Renderer *renderer)
+{
+    return SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
 }
 
 static const bool WHITE(SDL_Renderer *renderer)
