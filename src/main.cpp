@@ -55,7 +55,7 @@ void drawMap2D()
 // Player
 float px, py;
 float pdx, pdy, pa; // < Deltas and angle
-float pspeed;
+float pspeed, pspeedrot;
 
 typedef struct
 {
@@ -78,13 +78,13 @@ void drawPlayer()
 void movePlayer(float fps)
 {
     if (pkeys.q == 1) {
-        pa += pspeed * fps;
+        pa += pspeedrot * fps;
         pa = fixAng(pa);
         pdx = cos(degToRad(pa));
         pdy = -sin(degToRad(pa));
     }
     if (pkeys.d == 1) {
-        pa -= pspeed * fps;
+        pa -= pspeedrot * fps;
         pa = fixAng(pa);
         pdx = cos(degToRad(pa));
         pdy = -sin(degToRad(pa));
@@ -122,10 +122,11 @@ void drawRays3D()
     int r, mx, my, mp, dof;
     float vx, vy, rx, ry, ra, xo, yo;
     float disT;
+    int rays = 120; // = 60;
 
-    ra = fixAng(pa + 30);
+    ra = fixAng(pa + rays / 4); // ra = fixAng(pa + rays / 2);
 
-    for (r = 0; r < 60; r++) {
+    for (r = 0; r < rays; r++) {
         int mv = 0;
         int mh = 0;
 
@@ -226,13 +227,16 @@ void drawRays3D()
             lineH = 320;
         }
         // ^ Line Height
-        float lineO = 180 - lineH / 2; // < Line offset
-        SDL_RenderLine(renderer, r * 6 + 430, lineO, r * 6 + 430, lineH + lineO);
+        float lineO = 200 - lineH / 2; // < Line offset
+        int width = 400;
+        SDL_RenderLine(renderer,
+            mapX * mapS + 10 + r * (width / rays), lineO,
+            mapX * mapS + 10 + r * (width / rays), lineO + lineH
+        );
 
         // Increase angle for next ray
-        ra = fixAng(ra - 1);
+        ra = fixAng(ra - 0.5); // = 1
     }
-
 }
 
 // Startup
@@ -252,6 +256,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     pdx = cos(degToRad(pa));
     pdy = -sin(degToRad(pa));
     pspeed = 0.1;
+    pspeedrot = 0.3;
 
     return SDL_APP_CONTINUE;
 }
