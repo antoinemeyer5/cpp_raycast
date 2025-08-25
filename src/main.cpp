@@ -14,8 +14,27 @@
 static SDL_Renderer *renderer = NULL;
 
 // Player
+float degToRad(float a) { return a * M_PI / 180.0; }
+float fixAng(float a)
+{
+    if (a > 359) {
+        a -= 360;
+    }
+    if (a < 0) {
+        a += 360;
+    }
+    return a;
+}
+
 float px, py;
 float pdx, pdy, pa; // < Deltas and angle
+
+typedef struct
+{
+    int z, q, s, d; // < Button state on off
+} ButtonKeys;
+
+ButtonKeys pkeys;
 
 void drawPlayer()
 {
@@ -25,31 +44,37 @@ void drawPlayer()
 
     // Player direction
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE); // < Green
-    SDL_RenderLine(renderer, px, py, px + pdx * 5, py + pdy * 5);
+    SDL_RenderLine(renderer, px, py, px + pdx * 20, py + pdy * 20);
 }
 
-void movePlayer(SDL_Keycode sym)
+void movePlayer(float fps)
 {
-    if (sym == SDLK_Z) { px += pdx; py += pdy; }
-    if (sym == SDLK_Q) {
-        pa -= 0.1;
-        if (pa<0) { pa += 2*PI; }
-        pdx = cos(pa) * 5;
-        pdy = sin(pa) * 5;
+    if (pkeys.z == 1) {
+        px += pdx * 0.2 * fps;
+        py += pdy * 0.2 * fps;
     }
-    if (sym == SDLK_S) { px -= pdx; py -= pdy; }
-    if (sym == SDLK_D) {
-        pa += 0.1;
-        if (pa>2*PI) { pa -= 2*PI; }
-        pdx = cos(pa) * 5;
-        pdy = sin(pa) * 5;
+    if (pkeys.q == 1) {
+        pa += 0.2 * fps;
+        pa = fixAng(pa);
+        pdx = cos(degToRad(pa));
+        pdy = -sin(degToRad(pa));
+    }
+    if (pkeys.s == 1) {
+        px -= pdx * 0.2 * fps;
+        py -= pdy * 0.2 * fps;
+    }
+    if (pkeys.d == 1) {
+        pa -= 0.2 * fps;
+        pa = fixAng(pa);
+        pdx = cos(degToRad(pa));
+        pdy = -sin(degToRad(pa));
     }
 }
 
 // Map
-int mapX = 6;
-int mapY = 6;
-int mapS = 64;
+#define mapX 6
+#define mapY 6
+#define mapS 64
 
 int map[] = {
     1, 1, 1, 1, 1, 1,
@@ -86,85 +111,37 @@ void drawMap2D()
 // Rays
 float dist(float ax, float ay, float bx, float by, float ang)
 {
-    return ( sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) );
+    // return ( sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) );
+    return cos(degToRad(ang)) * (bx - ax) - sin(degToRad(ang)) * (by - ay);
 }
 
 void drawRays3D()
 {
     int r, mx, my, mp, dof;
-    float rx, ry, ra, xo, yo;
+    float vx, vy, rx, ry, ra, xo, yo;
     float disT;
 
-    ra = pa - DR * 30;
-    if (ra < 0) {
-        ra += 2 * PI;
-    }
-    if (ra > 2 * PI) {
-        ra -= 2 * PI;
-    }
+    ra = fixAng(pa + 30);
 
     for (r = 0; r < 60; r++) {
-        // Check horizontal lines
-        dof = 0;
-        float disH = 1000000;
-        float hx = px;
-        float hy = py;
-        float aTan = -1 / tan(ra);
-        if (ra > PI) { // < Looking up
-            ry = (((int) py >> 6) << 6) - 0.0001;
-            rx = (py - ry) * aTan + px;
-            yo = -64;
-            xo = -yo * aTan;
-        }
-        if (ra < PI) { // < Looking down
-            ry = (((int) py >> 6) << 6) + 64;
-            rx = (py - ry) * aTan + px;
-            yo = 64;
-            xo = -yo * aTan;
-        }
-        if (ra == 0 || ra == PI) { // < Looking straight left or right
-            rx = px;
-            ry = py;
-            dof = 8;
-        }
         int mv = 0;
         int mh = 0;
-        while (dof < 8) {
-            mx = (int) (rx) >> 6;
-            my = (int) (ry) >> 6;
-            mp = my * mapX + mx;
-            if (mp > 0 && mp < mapX * mapY && map[mp] > 0) { // < Hit wall
-                mh = map[mp];
-                hx = rx;
-                hy = ry;
-                disH = dist(px, py, hx, hy, ra);
-                dof = 8;
-            } else { // < Next line
-                rx += xo;
-                ry += yo;
-                dof += 1;
-            }
-        }
 
         // Check vertical lines
         dof = 0;
         float disV = 1000000;
-        float vx = px;
-        float vy = py;
-        float nTan = -tan(ra);
-        if (ra > P2 && ra < P3) { // < Looking left
-            rx = (((int) px >> 6) << 6) - 0.0001;
-            ry = (px - rx) * nTan + py;
-            xo = -64;
-            yo = -xo * nTan;
-        }
-        if (ra < P2 || ra > P3) { // < Looking right
+        float tan = tanf(degToRad(ra));
+        if (cos(degToRad(ra)) > 0.001) { // < Looking left
             rx = (((int) px >> 6) << 6) + 64;
-            ry = (px - rx) * nTan + py;
+            ry = (px - rx) * tan + py;
             xo = 64;
-            yo = -xo * nTan;
-        }
-        if (ra == 0 || ra == PI) { // < Looking straight up or down
+            yo = -xo * tan;
+        } else if (cos(degToRad(ra)) < -0.001) { // < Looking right
+            rx = (((int) px >> 6) << 6) - 0.0001;
+            ry = (px - rx) * tan + py;
+            xo = -64;
+            yo = -xo * tan;
+        } else { // < Looking straight up or down
             rx = px;
             ry = py;
             dof = 8;
@@ -175,9 +152,43 @@ void drawRays3D()
             mp = my * mapX + mx;
             if (mp > 0 && mp < mapX * mapY && map[mp] > 0) { // < Hit wall
                 mv = map[mp];
-                vx = rx;
-                vy = ry;
-                disV = dist(px, py, vx, vy, ra);
+                disV = dist(px, py, rx, ry, ra);
+                dof = 8;
+            } else { // < Next line
+                rx += xo;
+                ry += yo;
+                dof += 1;
+            }
+        }
+        vx = rx;
+        vy = ry;
+
+        // Check horizontal lines
+        dof = 0;
+        float disH = 1000000;
+        tan = 1.0 / tan;
+        if (sin(degToRad(ra)) > 0.001) { // < Looking up
+            ry = (((int) py >> 6) << 6) - 0.0001;
+            rx = (py - ry) * tan + px;
+            yo = -64;
+            xo = -yo * tan;
+        } else if (sin(degToRad(ra)) < -0.001) { // < Looking down
+            ry = (((int) py >> 6) << 6) + 64;
+            rx = (py - ry) * tan + px;
+            yo = 64;
+            xo = -yo * tan;
+        } else { // < Looking straight left or right
+            rx = px;
+            ry = py;
+            dof = 8;
+        }
+        while (dof < 8) {
+            mx = (int) (rx) >> 6;
+            my = (int) (ry) >> 6;
+            mp = my * mapX + mx;
+            if (mp > 0 && mp < mapX * mapY && map[mp] > 0) { // < Hit wall
+                mh = map[mp];
+                disH = dist(px, py, rx, ry, ra);
                 dof = 8;
             } else { // < Next line
                 rx += xo;
@@ -197,8 +208,8 @@ void drawRays3D()
             }
         }
         if (disH < disV) { // < Horizontal wall hit
-            rx = hx;
-            ry = hy;
+            rx = vx;
+            ry = vy;
             disT = disH;
             SDL_SetRenderDrawColor(renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
             if (mh == 2) {
@@ -208,10 +219,8 @@ void drawRays3D()
         SDL_RenderLine(renderer, px, py, rx, ry);
 
         // Draw 3D walls
-        float ca = pa - ra;
-        if (ca < 0) { ca += 2 * PI; }
-        if (ca > 2 * PI) { ca -= 2 * PI; }
-        disT = disT * cos(ca);
+        float ca = fixAng(pa - ra);
+        disT = disT * cos(degToRad(ca));
         // ^ Fix fisheye
         float lineH = (mapS * 320) / disT;
         if (lineH > 320) {
@@ -222,13 +231,7 @@ void drawRays3D()
         SDL_RenderLine(renderer, r * 6 + 430, lineO, r * 6 + 430, lineH + lineO);
 
         // Increase angle for next ray
-        ra += DR;
-        if (ra < 0) {
-            ra += 2 * PI;
-        }
-        if (ra > 2 * PI) {
-            ra -= 2 * PI;
-        }
+        ra = fixAng(ra - 1);
     }
 
 }
@@ -246,8 +249,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
     px = 300;
     py = 300;
-    pdx = cos(pa) * 5;
-    pdy = sin(pa) * 5;
+    pa = 90;
+    pdx = cos(degToRad(pa));
+    pdy = -sin(degToRad(pa));
 
     return SDL_APP_CONTINUE;
 }
@@ -263,28 +267,37 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     // Key down
     if (event->type == SDL_EVENT_KEY_DOWN) {
         SDL_Keycode sym = event->key.key;
-        if (sym == SDLK_ESCAPE) {
-            return SDL_APP_SUCCESS;
-        }
-
-        movePlayer(sym);
+        if (sym == SDLK_ESCAPE) { return SDL_APP_SUCCESS; }
+        if (sym == SDLK_Z) { pkeys.z = 1; }
+        if (sym == SDLK_Q) { pkeys.q = 1; }
+        if (sym == SDLK_S) { pkeys.s = 1; }
+        if (sym == SDLK_D) { pkeys.d = 1; }
     }
 
-    // Mouse
-    /*if (event->type == SDL_EVENT_MOUSE_MOTION) {
-        float x, y;
-        SDL_GetMouseState(&x, &y);
-        basket.move(x);
-    }*/
+    // Key up
+    if (event->type == SDL_EVENT_KEY_UP) {
+        SDL_Keycode sym = event->key.key;
+        if (sym == SDLK_Z) { pkeys.z = 0; }
+        if (sym == SDLK_Q) { pkeys.q = 0; }
+        if (sym == SDLK_S) { pkeys.s = 0; }
+        if (sym == SDLK_D) { pkeys.d = 0; }
+    }
 
     return SDL_APP_CONTINUE;
 }
+
+float frame1, frame2, fps;
 
 // Once per frame
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
     {
-        // basket.update();
+        // Frames per second
+        frame2 = SDL_GetTicks();
+        fps = frame2 - frame1;
+        frame1 = SDL_GetTicks();
+
+        movePlayer(fps);
     } // < Update
 
     {
