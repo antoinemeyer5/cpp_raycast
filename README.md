@@ -9,6 +9,9 @@ TODO
 Version 1: Player (`Z`, `Q`, `S`, `D`), Map 2D, Raycasting 3D
 ![screenshot-1](/visuals/1.png)
 
+Version 2: Handling fps, better player movements, player collisions
+![screenshot-2](/visuals/2.png)
+
 ## Features
 
 TODO
