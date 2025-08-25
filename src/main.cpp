@@ -13,7 +13,6 @@
 
 static SDL_Renderer *renderer = NULL;
 
-// Player
 float degToRad(float a) { return a * M_PI / 180.0; }
 float fixAng(float a)
 {
@@ -24,51 +23,6 @@ float fixAng(float a)
         a += 360;
     }
     return a;
-}
-
-float px, py;
-float pdx, pdy, pa; // < Deltas and angle
-
-typedef struct
-{
-    int z, q, s, d; // < Button state on off
-} ButtonKeys;
-
-ButtonKeys pkeys;
-
-void drawPlayer()
-{
-    // Player body
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    SDL_RenderPoint(renderer, px, py);
-
-    // Player direction
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE); // < Green
-    SDL_RenderLine(renderer, px, py, px + pdx * 20, py + pdy * 20);
-}
-
-void movePlayer(float fps)
-{
-    if (pkeys.z == 1) {
-        px += pdx * 0.2 * fps;
-        py += pdy * 0.2 * fps;
-    }
-    if (pkeys.q == 1) {
-        pa += 0.2 * fps;
-        pa = fixAng(pa);
-        pdx = cos(degToRad(pa));
-        pdy = -sin(degToRad(pa));
-    }
-    if (pkeys.s == 1) {
-        px -= pdx * 0.2 * fps;
-        py -= pdy * 0.2 * fps;
-    }
-    if (pkeys.d == 1) {
-        pa -= 0.2 * fps;
-        pa = fixAng(pa);
-        pdx = cos(degToRad(pa));
-        pdy = -sin(degToRad(pa));
-    }
 }
 
 // Map
@@ -105,6 +59,63 @@ void drawMap2D()
 
             SDL_RenderFillRect(renderer, &rect);
         }
+    }
+}
+
+// Player
+float px, py;
+float pdx, pdy, pa; // < Deltas and angle
+
+typedef struct
+{
+    int z, q, s, d; // < Button state on off
+} ButtonKeys;
+
+ButtonKeys pkeys;
+
+void drawPlayer()
+{
+    // Player body
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+    SDL_RenderPoint(renderer, px, py);
+
+    // Player direction
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE); // < Green
+    SDL_RenderLine(renderer, px, py, px + pdx * 20, py + pdy * 20);
+}
+
+void movePlayer(float fps)
+{
+    if (pkeys.q == 1) {
+        pa += 0.2 * fps;
+        pa = fixAng(pa);
+        pdx = cos(degToRad(pa));
+        pdy = -sin(degToRad(pa));
+    }
+    if (pkeys.d == 1) {
+        pa -= 0.2 * fps;
+        pa = fixAng(pa);
+        pdx = cos(degToRad(pa));
+        pdy = -sin(degToRad(pa));
+    }
+
+    // collisions
+    int xo = 0; if (pdx < 0) { xo = -20; } else { xo = 20; }
+    int yo = 0; if (pdy < 0) { yo = -20; } else { yo = 20; }
+    int ipx = px / 64.0;
+    int ipx_add_xo = (px + xo) / 64.0;
+    int ipx_sub_xo = (px - xo) / 64.0;
+    int ipy = py / 64.0;
+    int ipy_add_yo = (py + yo) / 64.0;
+    int ipy_sub_yo = (py - yo) / 64.0;
+
+    if (pkeys.z == 1) {
+        if (map[ipy * mapX + ipx_add_xo] == 0) { px += pdx * 0.2 * fps; }
+        if (map[ipy_add_yo * mapX + ipx] == 0) { py += pdy * 0.2 * fps; }
+    }
+    if (pkeys.s == 1) {
+        if (map[ipy * mapX + ipx_sub_xo] == 0) { px -= pdx * 0.2 * fps; }
+        if (map[ipy_sub_yo * mapX + ipx] == 0) { py -= pdy * 0.2 * fps; }
     }
 }
 
