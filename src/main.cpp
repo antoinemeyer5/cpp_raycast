@@ -86,14 +86,15 @@ void movePlayer(float fps)
     }
 
     // collisions
-    int xo = 0; if (pdx < 0) { xo = -20; } else { xo = 20; }
-    int yo = 0; if (pdy < 0) { yo = -20; } else { yo = 20; }
-    int ipx = px / 64.0;
-    int ipx_add_xo = (px + xo) / 64.0;
-    int ipx_sub_xo = (px - xo) / 64.0;
-    int ipy = py / 64.0;
-    int ipy_add_yo = (py + yo) / 64.0;
-    int ipy_sub_yo = (py - yo) / 64.0;
+    int limit = mapS * 0.35;
+    int xo = 0; if (pdx < 0) { xo = -limit; } else { xo = limit; }
+    int yo = 0; if (pdy < 0) { yo = -limit; } else { yo = limit; }
+    int ipx = px / mapS;
+    int ipx_add_xo = (px + xo) / mapS;
+    int ipx_sub_xo = (px - xo) / mapS;
+    int ipy = py / mapS;
+    int ipy_add_yo = (py + yo) / mapS;
+    int ipy_sub_yo = (py - yo) / mapS;
 
     if (pkeys.z == 1) {
         if (map[ipy * mapX + ipx_add_xo] == 0) { px += pdx * 0.2 * fps; }
@@ -108,7 +109,6 @@ void movePlayer(float fps)
 // Rays
 float dist(float ax, float ay, float bx, float by, float ang)
 {
-    // return ( sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) );
     return cos(degToRad(ang)) * (bx - ax) - sin(degToRad(ang)) * (by - ay);
 }
 
@@ -129,14 +129,14 @@ void drawRays3D()
         float disV = 1000000;
         float tan = tanf(degToRad(ra));
         if (cos(degToRad(ra)) > 0.001) { // < Looking left
-            rx = (((int) px >> 6) << 6) + 64;
+            rx = (((int) px / mapS) * mapS) + mapS;
             ry = (px - rx) * tan + py;
-            xo = 64;
+            xo = mapS;
             yo = -xo * tan;
         } else if (cos(degToRad(ra)) < -0.001) { // < Looking right
-            rx = (((int) px >> 6) << 6) - 0.0001;
+            rx = (((int) px / mapS) * mapS) - 0.0001;
             ry = (px - rx) * tan + py;
-            xo = -64;
+            xo = -mapS;
             yo = -xo * tan;
         } else { // < Looking straight up or down
             rx = px;
@@ -144,8 +144,8 @@ void drawRays3D()
             dof = 8;
         }
         while (dof < 8) {
-            mx = (int) (rx) >> 6;
-            my = (int) (ry) >> 6;
+            mx = (int) (rx) / mapS;
+            my = (int) (ry) / mapS;
             mp = my * mapX + mx;
             if (mp > 0 && mp < mapX * mapY && map[mp] > 0) { // < Hit wall
                 mv = map[mp];
@@ -165,14 +165,14 @@ void drawRays3D()
         float disH = 1000000;
         tan = 1.0 / tan;
         if (sin(degToRad(ra)) > 0.001) { // < Looking up
-            ry = (((int) py >> 6) << 6) - 0.0001;
+            ry = (((int) py / mapS) * mapS) - 0.0001;
             rx = (py - ry) * tan + px;
-            yo = -64;
+            yo = -mapS;
             xo = -yo * tan;
         } else if (sin(degToRad(ra)) < -0.001) { // < Looking down
-            ry = (((int) py >> 6) << 6) + 64;
+            ry = (((int) py / mapS) * mapS) + mapS;
             rx = (py - ry) * tan + px;
-            yo = 64;
+            yo = mapS;
             xo = -yo * tan;
         } else { // < Looking straight left or right
             rx = px;
@@ -180,8 +180,8 @@ void drawRays3D()
             dof = 8;
         }
         while (dof < 8) {
-            mx = (int) (rx) >> 6;
-            my = (int) (ry) >> 6;
+            mx = (int) (rx) / mapS;
+            my = (int) (ry) / mapS;
             mp = my * mapX + mx;
             if (mp > 0 && mp < mapX * mapY && map[mp] > 0) { // < Hit wall
                 mh = map[mp];
@@ -241,9 +241,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
     renderer = SDL_CreateRenderer(window, NULL);
 
-    px = 300;
-    py = 300;
-    pa = 90;
+    px = mapS * 1.2;
+    py = mapS * 1.2;
+    pa = 0;
     pdx = cos(degToRad(pa));
     pdy = -sin(degToRad(pa));
 
