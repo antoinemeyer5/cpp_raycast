@@ -202,18 +202,15 @@ void drawRays3D()
             rx = vx;
             ry = vy;
             disT = disV;
-            SDL_SetRenderDrawColor(renderer, 200, 200, 200, SDL_ALPHA_OPAQUE);
-            if (mv == 2) {
-                SDL_SetRenderDrawColor(renderer, 0, 0, 200, SDL_ALPHA_OPAQUE); // < Little Blue
+            SDL_SetRenderDrawColor(renderer, 150, 150, 150, SDL_ALPHA_OPAQUE); // < Little white
+            if (mv == 2) { // < Little Blue
+                SDL_SetRenderDrawColor(renderer, 0, 0, 150, SDL_ALPHA_OPAQUE);
             }
-        }
-        if (disH < disV) { // < Horizontal wall hit
-            rx = vx;
-            ry = vy;
+        } else { // < Horizontal wall hit
             disT = disH;
-            SDL_SetRenderDrawColor(renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
-            if (mh == 2) {
-                SDL_SetRenderDrawColor(renderer, 0, 0, 100, SDL_ALPHA_OPAQUE); // < Little Blue
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); // < White
+            if (mh == 2) { // < Blue
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
             }
         }
         SDL_RenderLine(renderer, px, py, rx, ry);
@@ -227,7 +224,7 @@ void drawRays3D()
             lineH = 320;
         }
         // ^ Line Height
-        float lineO = 160 - lineH / 2; // < Line offset
+        float lineO = 180 - lineH / 2; // < Line offset
         SDL_RenderLine(renderer, r * 6 + 430, lineO, r * 6 + 430, lineH + lineO);
 
         // Increase angle for next ray
