@@ -12,6 +12,9 @@ Version 1: Player (`Z`, `Q`, `S`, `D`), Map 2D, Raycasting 3D
 Version 2: Handling fps, better player movements, player collisions
 ![screenshot-2](/visuals/2.png)
 
+Version 3: Refactor code, map 2D dynamic size, player speed and speed rotation
+![screenshot-2](/visuals/3.png)
+
 ## Features
 
 TODO

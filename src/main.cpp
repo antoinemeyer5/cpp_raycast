@@ -14,7 +14,7 @@ static SDL_Renderer *renderer = NULL;
 // Map
 #define mapX 10
 #define mapY 10
-#define mapS 32
+#define mapS 8
 
 int map[] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -205,10 +205,10 @@ void drawRays3D()
         float ca = fixAng(pa - ra);
         disT = disT * cos(degToRad(ca));
         // ^ Fix fisheye
-        float lineH = (mapS * 320) / disT;
-        if (lineH > 320) { lineH = 320; } // < Line height
-        float lineO = 200 - lineH / 2; // < Line offset
-        int width = 400;
+        float lineH = (mapS * 420) / disT;
+        if (lineH > 420) { lineH = 420; } // < Line height
+        float lineO = 300 - lineH / 2; // < Line offset
+        int width = 500;
         SDL_RenderLine(renderer,
             mapX * mapS + 10 + r * (width / rays), lineO,
             mapX * mapS + 10 + r * (width / rays), lineO + lineH
