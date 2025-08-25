@@ -34,13 +34,7 @@ void drawMap2D()
     SDL_FRect rect;
     for (int y = 0; y < mapY; y++) {
         for (int x = 0; x < mapX; x++) {
-            if (map[y * mapX + x] == 1) {
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-            } else if (map[y * mapX + x] == 2) {
-                SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-            } else {
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-            }
+            pickColor(renderer, map[y * mapX + x], 'd');
 
             rect.x = x * mapS;
             rect.y = y * mapS;
@@ -112,11 +106,6 @@ void movePlayer(float fps)
 }
 
 // Rays
-float dist(float ax, float ay, float bx, float by, float ang)
-{
-    return cos(degToRad(ang)) * (bx - ax) - sin(degToRad(ang)) * (by - ay);
-}
-
 void drawRays3D()
 {
     int r, mx, my, mp, dof;
@@ -205,16 +194,10 @@ void drawRays3D()
             rx = vx;
             ry = vy;
             disT = disV;
-            SDL_SetRenderDrawColor(renderer, 150, 150, 150, SDL_ALPHA_OPAQUE); // < Little white
-            if (mv == 2) { // < Little Blue
-                SDL_SetRenderDrawColor(renderer, 0, 0, 150, SDL_ALPHA_OPAQUE);
-            }
+            pickColor(renderer, mv, 'l');
         } else { // < Horizontal wall hit
             disT = disH;
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); // < White
-            if (mh == 2) { // < Blue
-                SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-            }
+            pickColor(renderer, mh, 'd');
         }
         SDL_RenderLine(renderer, px, py, rx, ry);
 
@@ -223,10 +206,7 @@ void drawRays3D()
         disT = disT * cos(degToRad(ca));
         // ^ Fix fisheye
         float lineH = (mapS * 320) / disT;
-        if (lineH > 320) {
-            lineH = 320;
-        }
-        // ^ Line Height
+        if (lineH > 320) { lineH = 320; } // < Line height
         float lineO = 200 - lineH / 2; // < Line offset
         int width = 400;
         SDL_RenderLine(renderer,
