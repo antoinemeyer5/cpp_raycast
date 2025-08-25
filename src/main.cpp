@@ -12,17 +12,21 @@
 static SDL_Renderer *renderer = NULL;
 
 // Map
-#define mapX 6
-#define mapY 6
-#define mapS 64
+#define mapX 10
+#define mapY 10
+#define mapS 32
 
 int map[] = {
-    1, 1, 1, 1, 1, 1,
-    1, 0, 0, 1, 0, 1,
-    1, 0, 0, 0, 0, 1,
-    1, 1, 0, 2, 0, 1,
-    1, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 2, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 1, 1, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
 void drawMap2D()
@@ -51,6 +55,7 @@ void drawMap2D()
 // Player
 float px, py;
 float pdx, pdy, pa; // < Deltas and angle
+float pspeed;
 
 typedef struct
 {
@@ -73,13 +78,13 @@ void drawPlayer()
 void movePlayer(float fps)
 {
     if (pkeys.q == 1) {
-        pa += 0.2 * fps;
+        pa += pspeed * fps;
         pa = fixAng(pa);
         pdx = cos(degToRad(pa));
         pdy = -sin(degToRad(pa));
     }
     if (pkeys.d == 1) {
-        pa -= 0.2 * fps;
+        pa -= pspeed * fps;
         pa = fixAng(pa);
         pdx = cos(degToRad(pa));
         pdy = -sin(degToRad(pa));
@@ -97,12 +102,12 @@ void movePlayer(float fps)
     int ipy_sub_yo = (py - yo) / mapS;
 
     if (pkeys.z == 1) {
-        if (map[ipy * mapX + ipx_add_xo] == 0) { px += pdx * 0.2 * fps; }
-        if (map[ipy_add_yo * mapX + ipx] == 0) { py += pdy * 0.2 * fps; }
+        if (map[ipy * mapX + ipx_add_xo] == 0) { px += pdx * pspeed * fps; }
+        if (map[ipy_add_yo * mapX + ipx] == 0) { py += pdy * pspeed * fps; }
     }
     if (pkeys.s == 1) {
-        if (map[ipy * mapX + ipx_sub_xo] == 0) { px -= pdx * 0.2 * fps; }
-        if (map[ipy_sub_yo * mapX + ipx] == 0) { py -= pdy * 0.2 * fps; }
+        if (map[ipy * mapX + ipx_sub_xo] == 0) { px -= pdx * pspeed * fps; }
+        if (map[ipy_sub_yo * mapX + ipx] == 0) { py -= pdy * pspeed * fps; }
     }
 }
 
@@ -246,6 +251,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     pa = 0;
     pdx = cos(degToRad(pa));
     pdy = -sin(degToRad(pa));
+    pspeed = 0.1;
 
     return SDL_APP_CONTINUE;
 }
