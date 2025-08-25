@@ -6,24 +6,10 @@
 #include <SDL3/SDL_main.h>
 
 #include <math.h>
-#define PI 3.1415926535
-#define P2 PI/2
-#define P3 3*PI/2
-#define DR 0.0174533 // < One degree in radians
+
+#include "utils.hpp"
 
 static SDL_Renderer *renderer = NULL;
-
-float degToRad(float a) { return a * M_PI / 180.0; }
-float fixAng(float a)
-{
-    if (a > 359) {
-        a -= 360;
-    }
-    if (a < 0) {
-        a += 360;
-    }
-    return a;
-}
 
 // Map
 #define mapX 6
