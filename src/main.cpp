@@ -1,6 +1,6 @@
 #define SDL_MAIN_USE_CALLBACKS 1
-#define SCREEN_W 900
-#define SCREEN_H 600
+#define SCREEN_W 800
+#define SCREEN_H 700
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -11,10 +11,16 @@
 
 static SDL_Renderer *renderer = NULL;
 
+// View 3D
+#define viewWidth 700.0
+#define maxLineH 600
+
 // Map
 #define mapX 10
 #define mapY 10
-#define mapS 8
+#define mapS 16
+
+bool showMiniMap = false;
 
 int map[] = { // < Walls
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -47,6 +53,16 @@ int mapF[] = { // < Floors
 void drawMap2D()
 {
     SDL_FRect rect;
+
+    // Clear background
+    BLACK(renderer);
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = mapX * mapS;
+    rect.h = mapY * mapS;
+    SDL_RenderFillRect(renderer, &rect);
+
+    // Draw
     for (int y = 0; y < mapY; y++) {
         for (int x = 0; x < mapX; x++) {
             pickColor(renderer, map[y * mapX + x], 'd');
@@ -80,7 +96,7 @@ void drawPlayer()
     SDL_RenderPoint(renderer, px, py);
 
     // Player direction
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE); // < Green
+    GREEN(renderer);
     SDL_RenderLine(renderer, px, py, px + pdx * 20, py + pdy * 20);
 }
 
@@ -121,12 +137,91 @@ void movePlayer(float fps)
 }
 
 // Rays
+int rays = 120; // = 60;
+
+typedef struct
+{
+    float rx, ry;
+    float ra;
+    float disT;
+    int m;
+    char c;
+} StructRay;
+
+StructRay raysToDraw[120];
+
+void drawRays2D()
+{
+    StructRay* ptr = raysToDraw;
+    for (int i = 0; i < rays; i++, ptr++ ) {
+        pickColor(renderer, ptr->m, ptr->c);
+        SDL_RenderLine(renderer, px, py, ptr->rx, ptr->ry);
+    }
+}
+
+void draw3DCeilings(float startX, float startOffset, float lineO)
+{
+    RED(renderer);
+
+    SDL_RenderLine(renderer,
+        startX, lineO,
+        startX, startOffset - maxLineH / 2
+    );
+}
+
+void draw3DFloors(float startX, float startOffset, float lineO, float lineH)
+{
+    GREEN(renderer);
+
+    SDL_RenderLine(renderer,
+        startX, lineO + lineH,
+        startX, startOffset + maxLineH / 2
+    );
+}
+
+void draw3DWalls(int m, char c, float startX, float lineO, float lineH)
+{
+    pickColor(renderer, m, c);
+
+    SDL_RenderLine(renderer,
+        startX, lineO,
+        startX, lineO + lineH
+    );
+}
+
 void drawRays3D()
+{
+    StructRay* ptr = raysToDraw;
+    for (int i = 0; i < rays; i++, ptr++ ) {
+        // Fix fisheye
+        float ca = fixAng(pa - ptr->ra);
+        float disT = ptr->disT * cos(degToRad(ca));
+
+        // Center on screen
+        float startOffset = SCREEN_H / 2;
+
+        // Line height
+        float lineH = (mapS * maxLineH) / ptr->disT;
+        if (lineH > maxLineH) { lineH = maxLineH; }
+
+        // Line offset
+        float lineO = startOffset - lineH / 2;
+
+        // Center on screen
+        float startX = (SCREEN_W - viewWidth) / 2 + i * (viewWidth / rays);
+
+        // Draws
+        draw3DWalls(ptr->m, ptr->c, startX, lineO, lineH);
+        draw3DFloors(startX, startOffset, lineO, lineH);
+        draw3DCeilings(startX, startOffset, lineO);
+    }
+}
+
+void computeRays()
 {
     int r, mx, my, mp, dof;
     float vx, vy, rx, ry, ra, xo, yo;
     float disT;
-    int rays = 120; // = 60;
 
     ra = fixAng(pa + rays / 4); // ra = fixAng(pa + rays / 2);
 
@@ -204,48 +299,31 @@ void drawRays3D()
             }
         }
 
-        // Draw ray
+        // Ray mini map
+        int m;
+        char c;
         if (disV < disH) { // < Vertical wall hit
             rx = vx;
             ry = vy;
             disT = disV;
-            pickColor(renderer, mv, 'l');
+            m = mv;
+            c = 'l';
         } else { // < Horizontal wall hit
             disT = disH;
-            pickColor(renderer, mh, 'd');
+            m = mh;
+            c = 'd';
         }
-        SDL_RenderLine(renderer, px, py, rx, ry);
 
-        // Draw 3D: Walls
-        float ca = fixAng(pa - ra);
-        disT = disT * cos(degToRad(ca));
-        // ^ Fix fisheye
-
-        float maxLineH = 420;
-        int width = 500;
-        float startOffset = 250;
-
-        float lineH = (mapS * maxLineH) / disT;
-        if (lineH > maxLineH) { lineH = maxLineH; } // < Line height
-        float lineO = startOffset - lineH / 2; // < Line offset
-        SDL_RenderLine(renderer,
-            mapX * mapS + 10 + r * (width / rays), lineO,
-            mapX * mapS + 10 + r * (width / rays), lineO + lineH
-        );
-
-        // Draw 3D: Floors
-        GREEN(renderer);
-        SDL_RenderLine(renderer,
-            mapX * mapS + 10 + r * (width / rays), lineO + lineH,
-            mapX * mapS + 10 + r * (width / rays), startOffset + maxLineH / 2
-        );
-
-        // Draw 3D: Ceilings
-        RED(renderer);
-        SDL_RenderLine(renderer,
-            mapX * mapS + 10 + r * (width / rays), lineO,
-            mapX * mapS + 10 + r * (width / rays), startOffset - maxLineH / 2
-        );
+        // Save ray
+        StructRay currentRay = {
+            rx, // rx
+            ry, // ry
+            ra, // ra
+            disT, // disV or disH
+            m, // mv or mh
+            c, // 'l' or 'd'
+        };
+        raysToDraw[r] = currentRay;
 
         // Increase angle for next ray
         ra = fixAng(ra - 0.5); // = 1
@@ -290,6 +368,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
         if (sym == SDLK_Q) { pkeys.q = 1; }
         if (sym == SDLK_S) { pkeys.s = 1; }
         if (sym == SDLK_D) { pkeys.d = 1; }
+        if (sym == SDLK_M) {
+            showMiniMap = !showMiniMap;
+        }
     }
 
     // Key up
@@ -316,6 +397,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         frame1 = SDL_GetTicks();
 
         movePlayer(fps);
+
+        computeRays();
     } // < Update
 
     {
@@ -323,9 +406,13 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         SDL_RenderClear(renderer);
         // ^ Clean canvas
 
-        drawMap2D();
         drawRays3D();
-        drawPlayer();
+
+        if (showMiniMap) {
+            drawMap2D();
+            drawRays2D();
+            drawPlayer();
+        }
 
         SDL_RenderPresent(renderer); // < Put on screen
     } // < Draw
