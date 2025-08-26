@@ -40,6 +40,11 @@ static const bool RED(SDL_Renderer *renderer)
     return SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
 }
 
+static const bool LIGHT_RED(SDL_Renderer *renderer)
+{
+    return SDL_SetRenderDrawColor(renderer, 155, 0, 0, SDL_ALPHA_OPAQUE);
+}
+
 static const bool WHITE(SDL_Renderer *renderer)
 {
     return SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -73,13 +78,13 @@ static const bool pickColor(SDL_Renderer *renderer, int value, char type)
     if (type == 'd') {
         switch (value) {
             case 1: return WHITE(renderer);
-            case 2: return BLUE(renderer);
+            case 2: return RED(renderer);
             default: return BLACK(renderer);
         }
     } else if (type == 'l') {
         switch (value) {
             case 1: return GRAY(renderer);
-            case 2: return LIGHT_BLUE(renderer);
+            case 2: return LIGHT_RED(renderer);
             default: return BLACK(renderer);
         }
     } else {

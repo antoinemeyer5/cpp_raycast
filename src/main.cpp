@@ -161,7 +161,7 @@ void drawRays2D()
 
 void draw3DCeilings(float startX, float startOffset, float lineO)
 {
-    RED(renderer);
+    BLUE(renderer);
 
     SDL_RenderLine(renderer,
         startX, lineO,
