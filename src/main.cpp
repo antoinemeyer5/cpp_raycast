@@ -137,7 +137,8 @@ void movePlayer(float fps)
 }
 
 // Rays
-int rays = 120; // = 60;
+const int raysFactor = 2;
+const int rays = 120 * raysFactor;
 
 typedef struct
 {
@@ -148,7 +149,7 @@ typedef struct
     char c;
 } StructRay;
 
-StructRay raysToDraw[120];
+StructRay raysToDraw[rays];
 
 void drawRays2D()
 {
@@ -223,7 +224,7 @@ void computeRays()
     float vx, vy, rx, ry, ra, xo, yo;
     float disT;
 
-    ra = fixAng(pa + rays / 4); // ra = fixAng(pa + rays / 2);
+    ra = fixAng(pa + rays / (4 * raysFactor));
 
     for (r = 0; r < rays; r++) {
         int mv = 0;
@@ -326,7 +327,7 @@ void computeRays()
         raysToDraw[r] = currentRay;
 
         // Increase angle for next ray
-        ra = fixAng(ra - 0.5); // = 1
+        ra = fixAng(ra - (0.5/raysFactor));
     }
 }
 
