@@ -24,31 +24,16 @@ bool showMiniMap = false;
 
 int map[] = { // < Walls
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 2, 1,
+    1, 0, 0, 0, 0, 0, 0, 2, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 2, 0, 0, 1,
-    1, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-    1, 2, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-};
-
-/*
-int mapF[] = { // < Floors
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 2, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 2, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 2, 0, 0, 1,
-    1, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-    1, 2, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
-*/
 
 void drawMap2D()
 {
@@ -137,12 +122,13 @@ void movePlayer(float fps)
 }
 
 // Rays
-const int raysFactor = 2;
+const int raysFactor = 7; // resolution control
 const int rays = 120 * raysFactor;
 
 typedef struct
 {
-    float rx, ry;
+    float startX, startY;
+    float endX, endY;
     float ra;
     float disT;
     int m;
@@ -156,7 +142,7 @@ void drawRays2D()
     StructRay* ptr = raysToDraw;
     for (int i = 0; i < rays; i++, ptr++ ) {
         pickColor(renderer, ptr->m, ptr->c);
-        SDL_RenderLine(renderer, px, py, ptr->rx, ptr->ry);
+        SDL_RenderLine(renderer, ptr->startX, ptr->startY, ptr->endX, ptr->endY);
     }
 }
 
@@ -317,8 +303,8 @@ void computeRays()
 
         // Save ray
         StructRay currentRay = {
-            rx, // rx
-            ry, // ry
+            px, py, // startX, startY
+            rx, ry, // endX, endY
             ra, // ra
             disT, // disV or disH
             m, // mv or mh
@@ -342,6 +328,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
     renderer = SDL_CreateRenderer(window, NULL);
 
+    // Init. player
     px = mapS * 1.2;
     py = mapS * 1.2;
     pa = 0;

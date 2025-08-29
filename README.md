@@ -18,6 +18,8 @@ Version 3: Refactor code, Map 2D dynamic size, Player speed and speed rotation
 Version 4: Floors and ceilings, Slit compute and draw rays, Show/Hide mini map (`M`)
 ![screenshot-4](/visuals/4.png)
 
+Version 5: Better resolution control,
+
 ## Features
 
 TODO

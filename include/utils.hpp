@@ -50,6 +50,11 @@ static const bool WHITE(SDL_Renderer *renderer)
     return SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 }
 
+static const bool YELLOW(SDL_Renderer *renderer)
+{
+    return SDL_SetRenderDrawColor(renderer, 252, 186, 3, SDL_ALPHA_OPAQUE);
+}
+
 // Functions
 
 static const float degToRad(float a)
