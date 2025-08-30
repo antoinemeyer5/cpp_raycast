@@ -7,10 +7,7 @@ add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 
 include_directories(${project_name_SOURCE_DIR}/include)
 
-add_executable(main
-    src/main.cpp
-    # src/Basket.cpp
-)
+add_executable(main src/main.cpp)
 
 target_compile_features(main PRIVATE cxx_std_17)
 

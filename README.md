@@ -1,8 +1,4 @@
-# [TO_FIND]
-
-## Original app
-
-TODO
+# CPP - Raycasting
 
 ## Visuals
 
@@ -18,11 +14,14 @@ Version 3: Refactor code, Map 2D dynamic size, Player speed and speed rotation
 Version 4: Floors and ceilings, Slit compute and draw rays, Show/Hide mini map (`M`)
 ![screenshot-4](/visuals/4.png)
 
-Version 5: Better resolution control,
+Version 5: Better resolution control
+![screenshot-5](/visuals/5.png)
 
 ## Features
 
-TODO
+- Move in 3D space
+- Display/Hide minimap
+- Collisions with walls
 
 ## Developer's zone
 
